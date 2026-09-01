@@ -23,3 +23,11 @@ TICKERS = [
 ]
 
 assert len(TICKERS) == len(set(TICKERS)) == 25
+
+
+# What a $100 account can actually buy one share of, at 2026-09-01 prices.
+# The other 18 names in TICKERS are unaffordable at any size -- see
+# affordability.py. Kept separate from TICKERS so the pooled backtest still
+# measures the RULE SET across all 25 (expectancy in R does not depend on
+# share count), while dollar results can be restricted to what is reachable.
+AFFORDABLE_100 = ["T", "PFE", "BAC", "NFLX", "WFC", "KO", "INTC"]

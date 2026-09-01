@@ -218,7 +218,8 @@ __marimo__/
 .streamlit/secrets.toml
 
 # backtest data + outputs
-data/
+# data/ is tracked: bars transcribed from the broker connector are
+# expensive to reproduce and are part of the repo now.
 trades.csv
 pooled_trades.csv
 per_ticker.csv

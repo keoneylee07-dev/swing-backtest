@@ -131,8 +131,14 @@ def sequential(pooled):
     return pd.DataFrame(kept).reset_index(drop=True)
 
 
-def expectancy_block(label, trades):
-    """Expectancy in R with a 95% CI -- the only number that pools cleanly."""
+def expectancy_block(label, trades, dollars=True):
+    """Expectancy in R with a 95% CI -- the only number that pools cleanly.
+
+    dollars=False for the unconstrained view: the account cap is lifted by
+    inflating ACCOUNT_START, so P&L and drawdown there are artefacts of that
+    hack and would be actively misleading. R-multiples stay valid because R
+    is independent of share count.
+    """
     if trades.empty:
         print(f"\n{label}: no trades.")
         return
@@ -144,8 +150,6 @@ def expectancy_block(label, trades):
     se  = R.std(ddof=1) / math.sqrt(len(R))
     lo, hi = exp - 1.96 * se, exp + 1.96 * se
 
-    equity = bt.ACCOUNT_START + trades["pnl"].cumsum()
-    dd = ((equity - equity.cummax()) / equity.cummax()).min() * 100
     gp = trades.loc[trades.pnl > 0, "pnl"].sum()
     gl = abs(trades.loc[trades.pnl <= 0, "pnl"].sum())
 
@@ -158,8 +162,14 @@ def expectancy_block(label, trades):
     print(f"{'COMBINED EXPECTANCY':<28}{exp:+.3f}R per trade")
     print(f"{'95% CI':<28}[{lo:+.3f}R, {hi:+.3f}R]")
     print(f"{'Profit factor':<28}{(gp / gl) if gl else float('inf'):.2f}")
-    print(f"{'Max drawdown':<28}{dd:.1f}%")
-    print(f"{'Net P&L':<28}${trades['pnl'].sum():+.2f}")
+    if dollars:
+        equity = bt.ACCOUNT_START + trades["pnl"].cumsum()
+        dd = ((equity - equity.cummax()) / equity.cummax()).min() * 100
+        print(f"{'Max drawdown':<28}{dd:.1f}%")
+        print(f"{'Net P&L':<28}${trades['pnl'].sum():+.2f}")
+    else:
+        print(f"{'Max drawdown':<28}n/a (account cap lifted)")
+        print(f"{'Net P&L':<28}n/a (account cap lifted)")
     verdict = ("edge positive, CI excludes zero" if lo > 0
                else "positive but CI includes zero -- not yet evidence"
                if exp > 0 else "NEGATIVE expectancy")
@@ -205,7 +215,8 @@ if __name__ == "__main__":
 
     unc, _, unc_per_ticker, _ = run_universe(
         tickers, a.start, a.end, unconstrained=True)
-    expectancy_block("3. UNCONSTRAINED EDGE (account cap lifted)", unc)
+    expectancy_block("3. UNCONSTRAINED EDGE (account cap lifted)", unc,
+                     dollars=False)
 
     pooled.to_csv("pooled_trades.csv", index=False)
     per_ticker.to_csv("per_ticker.csv", index=False)

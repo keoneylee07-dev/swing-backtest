@@ -216,3 +216,9 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# backtest data + outputs
+data/
+trades.csv
+pooled_trades.csv
+per_ticker.csv

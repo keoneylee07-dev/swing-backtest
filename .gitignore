@@ -223,3 +223,5 @@ __marimo__/
 trades.csv
 pooled_trades.csv
 per_ticker.csv
+
+positions.json
